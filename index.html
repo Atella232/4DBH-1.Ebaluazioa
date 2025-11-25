@@ -1,582 +1,134 @@
 <!DOCTYPE html>
 <html lang="eu">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PolySolver 3D | Final Perfect</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Matematika DBH 4 | Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Outfit', 'sans-serif'],
+              mono: ['Fira Code', 'monospace'],
+            },
+            colors: {
+              space: {
+                900: '#0f0c29',
+                800: '#1a1638',
+                700: '#302b63',
+              },
+              neon: {
+                purple: '#b026ff',
+                cyan: '#00cec9',
+                pink: '#fd79a8',
+                blue: '#0984e3',
+              }
+            },
+            animation: {
+              'float': 'float 6s ease-in-out infinite',
+              'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-20px)' },
+              },
+              pulseGlow: {
+                '0%, 100%': { opacity: 1, boxShadow: '0 0 20px #00cec9' },
+                '50%': { opacity: .5, boxShadow: '0 0 10px #00cec9' },
+              }
+            }
+          }
+        }
+      }
+    </script>
     <style>
-        :root {
-            --primary: #6c5ce7;
-            --secondary: #a29bfe;
-            --accent: #00cec9;
-            --bg-dark: #0f0c29;
-            --bg-mid: #302b63;
-            --text: #ffffff;
-            --glass: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(255, 255, 255, 0.15);
-        }
+      body {
+        background: radial-gradient(circle at top center, #302b63, #0f0c29);
+        color: #ffffff;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      
+      /* Orb Backgrounds */
+      .orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(100px);
+        z-index: -1;
+      }
+      .orb-1 { width: 400px; height: 400px; background: #6c5ce7; top: -100px; left: -100px; opacity: 0.4; animation: float 10s infinite alternate; }
+      .orb-2 { width: 300px; height: 300px; background: #e17055; bottom: -50px; right: -50px; opacity: 0.3; animation: float 8s infinite alternate-reverse; }
+      .orb-3 { width: 200px; height: 200px; background: #00cec9; top: 40%; left: 60%; opacity: 0.2; animation: float 12s infinite ease-in-out; }
 
-        * { box-sizing: border-box; }
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
+      
+      .glass-input {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        transition: all 0.3s ease;
+      }
+      .glass-input:focus {
+        background: rgba(0, 0, 0, 0.4);
+        border-color: #00cec9;
+        outline: none;
+        box-shadow: 0 0 15px rgba(0, 206, 201, 0.3);
+      }
 
-        body {
-            margin: 0;
-            font-family: 'Outfit', sans-serif;
-            background: radial-gradient(circle at center, var(--bg-mid), var(--bg-dark));
-            min-height: 100vh;
-            color: var(--text);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+      .neon-text {
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      }
 
-        .stage-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            perspective: 1500px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+      .btn-neon {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        transition: all 0.3s;
+      }
+      .btn-neon:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 0 20px rgba(0, 206, 201, 0.4);
+        border-color: #00cec9;
+      }
 
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(90px);
-            z-index: -1;
-            animation: floatOrb 20s infinite alternate;
-        }
-        .orb-1 { width: 300px; height: 300px; background: var(--primary); top: -50px; left: -50px; opacity: 0.6; }
-        .orb-2 { width: 400px; height: 400px; background: #e17055; bottom: -100px; right: -100px; animation-delay: -5s; opacity: 0.4; }
-
-        @keyframes floatOrb {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(40px, 40px) scale(1.1); }
-        }
-
-        .controls-wrapper {
-            position: absolute;
-            top: 40px;
-            z-index: 100;
-            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-            transform-style: preserve-3d;
-        }
-
-        .controls-wrapper.minimized {
-            top: 20px;
-            transform: scale(0.75) translateY(-20px);
-            opacity: 0.9;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            background: var(--glass);
-            padding: 20px 30px;
-            border-radius: 50px;
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-            align-items: center;
-        }
-
-        input {
-            width: 60px;
-            background: rgba(0,0,0,0.4);
-            border: none;
-            border-bottom: 2px solid var(--secondary);
-            color: var(--accent);
-            font-family: 'Fira Code', monospace;
-            font-size: 1.2rem;
-            text-align: center;
-            padding: 5px;
-            transition: 0.3s;
-        }
-
-        input:focus {
-            outline: none;
-            background: rgba(0,0,0,0.6);
-            transform: scale(1.1);
-            border-color: var(--accent);
-        }
-
-        .var { font-weight: 800; color: #fff; font-size: 1.1rem; }
-
-        .btn-main {
-            background: var(--accent);
-            color: var(--bg-dark);
-            border: none;
-            padding: 12px 35px;
-            border-radius: 30px;
-            font-weight: 800;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-left: 20px;
-            transition: 0.3s;
-            box-shadow: 0 0 20px var(--accent);
-        }
-        .btn-main:hover { transform: scale(1.05); box-shadow: 0 0 40px var(--accent); }
-
-        .nav-controls {
-            position: absolute;
-            bottom: 40px;
-            display: flex;
-            gap: 20px;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s;
-        }
-        .nav-controls.visible { opacity: 1; pointer-events: all; }
-
-        .btn-nav {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 15px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: 0.3s;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .btn-nav:hover { background: rgba(255,255,255,0.2); transform: translateY(-5px); }
-
-        .card-stack {
-            position: relative;
-            width: 800px;
-            height: 450px;
-            margin-top: 60px;
-            transform-style: preserve-3d;
-        }
-
-        .step-card {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(145deg, rgba(30, 30, 50, 0.9), rgba(15, 15, 25, 0.95));
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            transform: translateZ(-1000px) rotateX(30deg); 
-            opacity: 0;
-            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-        }
-
-        .step-card.active {
-            transform: translateZ(0) rotateX(0);
-            opacity: 1;
-            z-index: 10;
-            border: 1px solid var(--accent);
-            box-shadow: 0 0 40px rgba(0, 206, 201, 0.15);
-        }
-
-        .step-card.passed {
-            transform: translateZ(-300px) translateY(-200px) rotateX(20deg);
-            opacity: 0;
-            z-index: 0;
-        }
-
-        h2 { margin: 0 0 20px 0; font-size: 2rem; color: #fff; display: flex; align-items: center; justify-content: space-between;}
-        .badge { font-size: 0.7rem; background: var(--primary); padding: 5px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px;}
-        
-        .explanation { font-size: 1.1rem; line-height: 1.5; color: #ccc; margin-bottom: 20px; }
-        
-        .math-zone {
-            font-family: 'Fira Code', monospace;
-            background: rgba(0,0,0,0.3);
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 4px solid var(--accent);
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            overflow: hidden;
-            position: relative;
-            width: 100%;
-        }
-
-        /* RUFFINI TABLE CORRECTION */
-        .ruffini-wrapper {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table.ruffini-table {
-            border-collapse: collapse;
-            font-family: 'Fira Code', monospace;
-            font-size: 1.2rem;
-            color: #fff;
-            margin: 0 auto;
-        }
-
-        table.ruffini-table td {
-            padding: 8px 20px;
-            text-align: center;
-            position: relative;
-            min-width: 50px;
-        }
-
-        table.ruffini-table tr td:first-child {
-            border-right: 3px solid #fff;
-            color: var(--accent);
-            font-weight: bold;
-        }
-
-        table.ruffini-table tr:nth-child(2) td { border-bottom: 3px solid #fff; }
-        table.ruffini-table tr:nth-child(2) td:first-child { border-bottom: 3px solid #fff; }
-
-        .r-calc { color: #aaa; font-size: 0.9em; }
-        .r-res { font-weight: bold; }
-        .r-zero { 
-            color: var(--bg-dark); 
-            background: var(--accent); 
-            padding: 2px 6px; 
-            border-radius: 4px;
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        .formula-container { display: flex; align-items: center; gap: 10px; }
-        .fraction { display: inline-block; text-align: center; vertical-align: middle; margin: 0 5px; }
-        .frac-top { display: block; border-bottom: 2px solid #fff; padding: 0 5px 5px 5px; margin-bottom: 5px; }
-        .frac-bottom { display: block; padding: 0 5px; }
-
-        /* FINAL RESULT AUTO-FIT */
-        .final-container {
-            width: 100%;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-        
-        .final-text {
-            display: inline-block;
-            white-space: nowrap;
-            color: var(--accent);
-            font-weight: bold;
-            text-shadow: 0 0 30px var(--accent);
-            /* Base size, will be overwritten by JS */
-            font-size: 3rem;
-            line-height: 1;
-            padding: 0 10px;
-        }
-
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+      }
+      .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
     </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
 </head>
-<body>
-
+  <body>
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
-
-    <div class="stage-container">
-        
-        <div class="controls-wrapper" id="inputPanel">
-            <div class="input-group">
-                <div class="term"><input type="number" id="a" value="1"><span class="var">x<sup>4</sup></span></div>
-                <div class="term">+ <input type="number" id="b" value="-2"><span class="var">x<sup>3</sup></span></div>
-                <div class="term">+ <input type="number" id="c" value="-13"><span class="var">x<sup>2</sup></span></div>
-                <div class="term">+ <input type="number" id="d" value="14"><span class="var">x</span></div>
-                <div class="term">+ <input type="number" id="e" value="24"></div>
-                <button class="btn-main" onclick="startSolver()">HASI</button>
-            </div>
-        </div>
-
-        <div class="card-stack" id="cardStack"></div>
-
-        <div class="nav-controls" id="navControls">
-            <button class="btn-nav" onclick="reset()">↻ Berrabiarazi</button>
-            <button class="btn-nav" style="background: var(--primary); border:none;" onclick="nextStep()">Hurrengoa →</button>
-        </div>
-
-    </div>
-
-<script>
-    let stepsData = [];
-    let currentStepIndex = -1;
-
-    function getDivisors(n) {
-        if (n === 0) return [];
-        n = Math.abs(n);
-        let divs = [];
-        for (let i = 1; i <= n; i++) {
-            if (n % i === 0) { divs.push(i); divs.push(-i); }
-        }
-        return divs.sort((a, b) => a - b);
-    }
-
-    function formatPoly(coeffs) {
-        let html = '';
-        const degree = coeffs.length - 1;
-        coeffs.forEach((coef, index) => {
-            if (coef === 0) return;
-            let sign = coef > 0 ? (index === 0 ? '' : ' + ') : ' - ';
-            let absCoef = Math.abs(coef);
-            let power = degree - index;
-            let showCoef = (absCoef !== 1) || (power === 0);
-            html += `${sign}${showCoef ? absCoef : ''}`;
-            if (power > 0) html += `x${power > 1 ? `<sup>${power}</sup>` : ''}`;
-        });
-        return html || '0';
-    }
-
-    function generateSteps() {
-        stepsData = [];
-        let coeffs = [
-            parseFloat(document.getElementById('a').value) || 0,
-            parseFloat(document.getElementById('b').value) || 0,
-            parseFloat(document.getElementById('c').value) || 0,
-            parseFloat(document.getElementById('d').value) || 0,
-            parseFloat(document.getElementById('e').value) || 0
-        ];
-
-        if (coeffs[0] === 0) { alert("'a' ezin da 0 izan"); return false; }
-
-        let currentCoeffs = [...coeffs];
-        let factors = [];
-        let roots = [];
-
-        // 1. FACTOR COMUN
-        let commonFactorX = 0;
-        while (currentCoeffs.length > 0 && currentCoeffs[currentCoeffs.length - 1] === 0) {
-            commonFactorX++;
-            currentCoeffs.pop();
-        }
-
-        if (commonFactorX > 0) {
-            let factorStr = commonFactorX === 1 ? "x" : `x<sup>${commonFactorX}</sup>`;
-            stepsData.push({
-                title: "Faktore Komuna",
-                badge: "1. Urratsa",
-                math: `${formatPoly(coeffs)} = <span style="color:var(--accent)">${factorStr}</span> · (${formatPoly(currentCoeffs)})`,
-                desc: `Gai independentea 0 da. <b>${factorStr}</b> ateratzen dugu. 0 erro bat da.`
-            });
-            for(let i=0; i<commonFactorX; i++) { factors.push("x"); roots.push(0); }
-        }
-
-        // 2. RUFFINI
-        let degree = currentCoeffs.length - 1;
-        while (degree > 2) {
-            let termIndep = currentCoeffs[currentCoeffs.length - 1];
-            let divisors = getDivisors(termIndep);
-            let found = false;
-            
-            for (let div of divisors) {
-                let newCoeffs = [];
-                let val = currentCoeffs[0];
-                newCoeffs.push(val);
-                let calculations = [];
-                
-                for (let i = 1; i < currentCoeffs.length; i++) {
-                    let res = val * div;
-                    calculations.push(res);
-                    val = currentCoeffs[i] + res;
-                    if (i < currentCoeffs.length - 1) newCoeffs.push(val);
-                }
-                let remainder = val;
-
-                if (remainder === 0) {
-                    let row1 = `<td></td>`; 
-                    currentCoeffs.forEach(c => row1 += `<td>${c}</td>`);
-                    let row2 = `<td>${div}</td><td>↓</td>`; 
-                    calculations.forEach(c => row2 += `<td class="r-calc">${c}</td>`);
-                    let row3 = `<td></td>`; 
-                    newCoeffs.forEach(c => row3 += `<td class="r-res">${c}</td>`);
-                    row3 += `<td class="r-res"><span class="r-zero">0</span></td>`; 
-
-                    let tableHTML = `
-                        <div class="ruffini-wrapper">
-                            <table class="ruffini-table">
-                                <tr>${row1}</tr>
-                                <tr>${row2}</tr>
-                                <tr>${row3}</tr>
-                            </table>
-                        </div>
-                    `;
-
-                    stepsData.push({
-                        title: "Ruffini",
-                        badge: `Maila ${degree} → ${degree-1}`,
-                        math: tableHTML,
-                        desc: `Zatitzailea <b>${div}</b> denean, hondarra 0 da.`
-                    });
-
-                    roots.push(div);
-                    let sign = div >= 0 ? '-' : '+';
-                    factors.push(`(x ${sign} ${Math.abs(div)})`);
-                    currentCoeffs = newCoeffs;
-                    degree--;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) break;
-        }
-
-        // 3. ECUACION 2 GRADO
-        if (degree === 2) {
-            let a = currentCoeffs[0], b = currentCoeffs[1], c = currentCoeffs[2];
-            let discrim = (b * b) - (4 * a * c);
-            let bSign = b < 0 ? `(${b})` : b;
-            let minusB = -b;
-            
-            let formulaHTML = `
-                <div class="formula-container">
-                    <span>x = </span>
-                    <div class="fraction">
-                        <span class="frac-top">${minusB} ± √<span style="border-top:1px solid #fff">${bSign}² - 4·${a}·${c}</span></span>
-                        <span class="frac-bottom">2 · ${a}</span>
-                    </div>
-                </div>
-            `;
-
-            stepsData.push({
-                title: "Formula Koadratikoa",
-                badge: "Ordezkatzen",
-                math: formulaHTML,
-                desc: `Formula orokorrean datuak ordezkatzen ditugu. <br>Diskriminatzailea (Δ) = ${discrim}`
-            });
-
-            if (discrim >= 0) {
-                let r1 = (-b + Math.sqrt(discrim)) / (2 * a);
-                let r2 = (-b - Math.sqrt(discrim)) / (2 * a);
-                r1 = Math.round(r1*100)/100;
-                r2 = Math.round(r2*100)/100;
-
-                roots.push(r1);
-                roots.push(r2);
-                factors.push(`(x ${r1>=0?'-':'+'} ${Math.abs(r1)})`);
-                factors.push(`(x ${r2>=0?'-':'+'} ${Math.abs(r2)})`);
-
-                stepsData.push({
-                    title: "Emaitzak",
-                    badge: "Soluzioak",
-                    math: `x₁ = ${r1} <br> x₂ = ${r2}`,
-                    desc: "Bi erro erreal lortu ditugu."
-                });
-            } else {
-                stepsData.push({
-                    title: "Soluziorik ez",
-                    badge: "Δ < 0",
-                    math: "Δ negatiboa da",
-                    desc: "Ekuazio honek ez du soluzio errealik."
-                });
-                factors.push(`(${formatPoly(currentCoeffs)})`);
-            }
-        } else if (degree > 2) {
-            factors.push(`(${formatPoly(currentCoeffs)})`);
-        }
-
-        // 4. FINAL
-        let finalString = "";
-        if (coeffs[0] !== 1) finalString += `${coeffs[0]}·`;
-        finalString += factors.map(f => f==="x"?"x":f).join('·');
-
-        stepsData.push({
-            title: "Emaitza Finala",
-            badge: "Amaituta",
-            math: `<div class="final-container"><span class="final-text">${finalString}</span></div>`,
-            desc: "Hemen duzu polinomioaren faktorizazio osoa.",
-            isFinal: true
-        });
-
-        return true;
-    }
-
-    function startSolver() {
-        if(generateSteps()) {
-            document.getElementById('inputPanel').classList.add('minimized');
-            document.getElementById('navControls').classList.add('visible');
-            currentStepIndex = -1;
-            document.getElementById('cardStack').innerHTML = '';
-            nextStep();
-        }
-    }
-
-    function createCard(step, index) {
-        const div = document.createElement('div');
-        div.className = 'step-card';
-        div.id = `step-${index}`;
-        div.innerHTML = `
-            <h2>${step.title} <span class="badge">${step.badge}</span></h2>
-            <div class="explanation">${step.desc}</div>
-            <div class="math-zone">${step.math}</div>
-        `;
-        return div;
-    }
-
-    function nextStep() {
-        if (currentStepIndex >= stepsData.length - 1) return;
-
-        if (currentStepIndex >= 0) {
-            const prev = document.getElementById(`step-${currentStepIndex}`);
-            prev.classList.remove('active');
-            prev.classList.add('passed');
-        }
-
-        currentStepIndex++;
-        const step = stepsData[currentStepIndex];
-        const card = createCard(step, currentStepIndex);
-        document.getElementById('cardStack').appendChild(card);
-        
-        // Wait for render before fitText
-        requestAnimationFrame(() => {
-            card.classList.add('active'); 
-            if(step.isFinal) {
-                // Small delay to allow transition/layout to settle
-                setTimeout(() => fitText(card.querySelector('.final-text')), 100);
-            }
-        });
-
-        if(currentStepIndex === stepsData.length - 1) {
-            document.querySelector('.btn-nav:last-child').style.display = 'none';
-        }
-    }
-
-    // NEW FIT TEXT LOGIC (Exact Scale)
-    function fitText(element) {
-        if (!element) return;
-        const container = element.parentElement;
-        
-        // 1. Reset to base max size
-        element.style.fontSize = '3rem';
-        
-        const availableWidth = container.clientWidth;
-        const textWidth = element.scrollWidth;
-        
-        // 2. Calculate exact ratio needed
-        // If text is wider than container, shrink. If not, keep max size.
-        if (textWidth > availableWidth) {
-            const scale = (availableWidth / textWidth) * 0.95; // 95% safety margin
-            const newSize = 3 * scale;
-            element.style.fontSize = `${newSize}rem`;
-        }
-    }
-
-    function reset() {
-        document.getElementById('inputPanel').classList.remove('minimized');
-        document.getElementById('navControls').classList.remove('visible');
-        document.getElementById('cardStack').innerHTML = '';
-        document.querySelector('.btn-nav:last-child').style.display = 'flex';
-        currentStepIndex = -1;
-    }
-</script>
+    <div class="orb orb-3"></div>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
 </body>
 </html>
